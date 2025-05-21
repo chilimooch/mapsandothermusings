@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chili's Interactive World Map</title>
+    <meta charset="utf-8" />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            margin: 20px auto;
+        }
+        #toggleButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #toggleButton:hover {
+            background-color: #0056b3;
+        }
+        .delete-link {
+            color: red;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Chili's Interactive World Map</h1>
+    <div id="map"></div>
+    <button id="toggleButton">Toggle Satellite View</button>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([30, 110], 5); // Centered roughly over China
+
+        // Street Layer (default)
+        var streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Satellite Layer
+        var satelliteLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            attribution: 'Imagery © Google'
+        });
+
+        var satelliteOn = false;
+
+        document.getElementById('toggleButton').addEventListener('click', function() {
+            if (satelliteOn) {
+                map.removeLayer(satelliteLayer);
+                streetLayer.addTo(map);
+            } else {
+                map.removeLayer(streetLayer);
+                satelliteLayer.addTo(map);
+            }
+            satelliteOn = !satelliteOn;
+        });
+
+        // Helper function to format coordinates
+        function toDegreesMinutes(coord, isLat) {
+            var dir = coord >= 0 ? (isLat ? 'N' : 'E') : (isLat ? 'S' : 'W');
+            var absCoord = Math.abs(coord);
+            var degrees = Math.floor(absCoord);
+            var minutes = (absCoord - degrees) * 60;
+
+            var degStr = isLat
+                ? String(degrees).padStart(2, '0')
+                : String(degrees).padStart(3, '0');
+
+            var minStr = minutes.toFixed(4);
+
+            return `${dir}${degStr} ${minStr}`;
+        }
+
+        // Major PLAAF & PLAN bases
+        var militaryBases = [
+            { name: "Chengdu Air Base", lat: 30.7053, lng: 103.9503 },
+            { name: "Baoshan Airport", lat: 25.0533, lng: 99.1683 },
+            { name: "Qamdo Air Base", lat: 30.5536, lng: 97.1086 },
+            { name: "Caojiabao Airport", lat: 36.5281, lng: 102.0394 },
+            { name: "Chongqing Air Base", lat: 29.4953, lng: 106.3586 },
+            { name: "Dali Air Base", lat: 25.6500, lng: 100.3192 },
+            { name: "Golmud Air Base", lat: 36.4006, lng: 94.7861 },
+            { name: "Kunming Airport", lat: 24.9942, lng: 102.7433 },
+            { name: "Lhasa Gonggar Airport", lat: 29.2972, lng: 90.9131 },
+            { name: "Shigatse Air Base", lat: 29.3519, lng: 89.3114 },
+            { name: "Qingdao Naval Base", lat: 36.0671, lng: 120.3826 },
+            { name: "Ningbo Naval Base", lat: 29.8683, lng: 121.5440 },
+            { name: "Shanghai Naval Base", lat: 31.2304, lng: 121.4737 },
+            { name: "Zhanjiang Naval Base", lat: 21.1960, lng: 110.4039 },
+            { name: "Yulin Naval Base", lat: 18.2345, lng: 109.5119 }
+        ];
+
+        militaryBases.forEach(function(base) {
+            var formattedLat = toDegreesMinutes(base.lat, true);
+            var formattedLng = toDegreesMinutes(base.lng, false);
+
+            var marker = L.marker([base.lat, base.lng]).addTo(map);
+            var popupContent = `
+                <b>${base.name}</b><br>
+                ${formattedLat} ${formattedLng}<br>
+                <span class="delete-link">🗑️ Delete Pin</span>
+            `;
+            marker.bindPopup(popupContent);
+
+            marker.on('popupopen', function() {
+                var popup = marker.getPopup();
+                setTimeout(function() {
+                    var deleteLink = popup.getElement().querySelector('.delete-link');
+                    deleteLink.addEventListener('click', function() {
+                        map.removeLayer(marker);
+                    });
+                }, 100);
+            });
+        });
+    </script>
+
+</body>
+</html>

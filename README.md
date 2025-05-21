@@ -1,2 +1,2 @@
 # mapsandothermusings
-Learning as I go!
+Teaching myself Python, experimenting with buuilding simple web based dashboards. Initially focused on buiulding a map of the world and being able to interactwe with it by dropping mark points and toggling between satellite and map layers. Next goal is to pipe in AIS data via RESTAPI...
